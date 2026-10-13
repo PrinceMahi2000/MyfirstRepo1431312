@@ -1,0 +1,169 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_PRODUCTS 5
+#define MAX_CART 50
+
+// Product structure
+struct Product {
+    int id;
+    char name[50];
+    float price;
+};
+
+// Cart item structure
+struct CartItem {
+    struct Product product;
+    int quantity;
+};
+
+// Catalog of products
+struct Product catalog[MAX_PRODUCTS] = {
+    {1, "Laptop", 750.00},
+    {2, "Smartphone", 450.00},
+    {3, "Headphones", 80.00},
+    {4, "Smartwatch", 150.00},
+    {5, "USB Cable", 12.50}
+};
+
+struct CartItem cart[MAX_CART];
+int cart_count = 0;
+
+void displayCatalog() {
+    printf("\n========= PRODUCT CATALOG =========\n");
+    printf("%-5s %-20s %-10s\n", "ID", "Name", "Price ($)");
+    printf("-----------------------------------\n");
+    for (int i = 0; i < MAX_PRODUCTS; i++) {
+        printf("%-5d %-20s $%-9.2f\n", catalog[i].id, catalog[i].name, catalog[i].price);
+    }
+    printf("===================================\n");
+}
+
+void addToCart() {
+    int id, qty;
+    printf("\nEnter Product ID to add to cart: ");
+    if (scanf("%d", &id) != 1) return;
+
+    int found = -1;
+    for (int i = 0; i < MAX_PRODUCTS; i++) {
+        if (catalog[i].id == id) {
+            found = i;
+            break;
+        }
+    }
+
+    if (found == -1) {
+        printf("Invalid Product ID!\n");
+        return;
+    }
+
+    printf("Enter Quantity: ");
+    if (scanf("%d", &qty) != 1 || qty <= 0) {
+        printf("Invalid quantity!\n");
+        return;
+    }
+
+    // Check if item already in cart
+    for (int i = 0; i < cart_count; i++) {
+        if (cart[i].product.id == id) {
+            cart[i].quantity += qty;
+            printf("Updated %s quantity to %d in cart.\n", catalog[found].name, cart[i].quantity);
+            return;
+        }
+    }
+
+    // Add new item to cart
+    if (cart_count < MAX_CART) {
+        cart[cart_count].product = catalog[found];
+        cart[cart_count].quantity = qty;
+        cart_count++;
+        printf("Added %d x %s to cart.\n", qty, catalog[found].name);
+    } else {
+        printf("Cart is full!\n");
+    }
+}
+
+void viewCart() {
+    if (cart_count == 0) {
+        printf("\nYour shopping cart is empty.\n");
+        return;
+    }
+
+    printf("\n========= YOUR SHOPPING CART =========\n");
+    printf("%-5s %-20s %-10s %-10s %-10s\n", "ID", "Name", "Price", "Qty", "Subtotal");
+    printf("------------------------------------------------------\n");
+    float total = 0;
+    for (int i = 0; i < cart_count; i++) {
+        float subtotal = cart[i].product.price * cart[i].quantity;
+        total += subtotal;
+        printf("%-5d %-20s $%-9.2f %-10d $%-9.2f\n",
+               cart[i].product.id,
+               cart[i].product.name,
+               cart[i].product.price,
+               cart[i].quantity,
+               subtotal);
+    }
+    printf("------------------------------------------------------\n");
+    printf("TOTAL AMOUNT: $%.2f\n", total);
+    printf("======================================================\n");
+}
+
+void checkout() {
+    if (cart_count == 0) {
+        printf("\nYour cart is empty. Add items before checking out.\n");
+        return;
+    }
+
+    viewCart();
+    char confirm;
+    printf("\nDo you want to confirm your order? (y/n): ");
+    scanf(" %c", &confirm);
+
+    if (confirm == 'y' || confirm == 'Y') {
+        printf("\nOrder placed successfully! Thank you for shopping with us.\n");
+        cart_count = 0; // Clear cart
+    } else {
+        printf("Checkout cancelled.\n");
+    }
+}
+
+int main() {
+    int choice;
+    while (1) {
+        printf("\n=== E-COMMERCE CONSOLE MENU ===\n");
+        printf("1. View Product Catalog\n");
+        printf("2. Add Item to Cart\n");
+        printf("3. View Cart\n");
+        printf("4. Checkout\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+
+        if (scanf("%d", &choice) != 1) {
+            printf("Invalid input. Please enter a number.\n");
+            while (getchar() != '\n'); // clear input buffer
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                displayCatalog();
+                break;
+            case 2:
+                addToCart();
+                break;
+            case 3:
+                viewCart();
+                break;
+            case 4:
+                checkout();
+                break;
+            case 5:
+                printf("\nExiting application. Goodbye!\n");
+                return 0;
+            default:
+                printf("Invalid choice. Please select 1-5.\n");
+        }
+    }
+    return 0;
+}
