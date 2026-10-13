@@ -1,0 +1,141 @@
+import sys
+
+# --- DATABASE / STORAGE SIMULATION ---
+PRODUCTS = {
+    1: {"name": "Wireless Mouse", "price": 25.99, "stock": 10},
+    2: {"name": "Mechanical Keyboard", "price": 89.99, "stock": 5},
+    3: {"name": "27-inch Monitor", "price": 199.99, "stock": 3},
+    4: {"name": "Bluetooth Headphones", "price": 54.50, "stock": 0},  # Out of stock example
+}
+
+USERS = {
+    "customer@email.com": "password123"
+}
+
+class ECommerceApp:
+    def __init__(self):
+        self.current_user = None
+        self.cart = {}  # Format: {product_id: quantity}
+
+    def run(self):
+        print("--- WELCOME TO THE PYTHON MINI-STORE ---")
+        while True:
+            if not self.current_user:
+                self.auth_menu()
+            else:
+                self.main_menu()
+
+    # --- USER AUTHENTICATION ---
+    def auth_menu(self):
+        print("\n1. Login\n2. Register\n3. Exit")
+        choice = input("Select an option: ").strip()
+        
+        if choice == "1":
+            email = input("Enter email: ").strip()
+            password = input("Enter password: ").strip()
+            if USERS.get(email) == password:
+                self.current_user = email
+                print(f"\nWelcome back, {email}!")
+            else:
+                print("\nError: Invalid email or password.")
+        elif choice == "2":
+            email = input("Enter new email: ").strip()
+            if email in USERS:
+                print("\nError: Email already registered.")
+                return
+            password = input("Create password: ").strip()
+            if email and password:
+                USERS[email] = password
+                print("\nRegistration successful! Please login.")
+            else:
+                print("\nError: Fields cannot be blank.")
+        elif choice == "3":
+            print("\nThank you for visiting. Goodbye!")
+            sys.exit()
+        else:
+            print("\nError: Invalid option.")
+
+    # --- MAIN STORE NAVIGATION ---
+    def main_menu(self):
+        print(f"\nLogged in as: {self.current_user}")
+        print("1. View Products\n2. View Cart & Checkout\n3. Logout")
+        choice = input("Select an option: ").strip()
+
+        if choice == "1":
+            self.browse_products()
+        elif choice == "2":
+            self.view_cart()
+        elif choice == "3":
+            self.current_user = None
+            self.cart = {}
+            print("\nLogged out successfully.")
+        else:
+            print("\nError: Invalid option.")
+
+    # --- CATALOG MANAGEMENT ---
+    def browse_products(self):
+        print("\n--- AVAILABLE PRODUCTS ---")
+        for p_id, info in PRODUCTS.items():
+            stock_status = f"{info['stock']} left" if info['stock'] > 0 else "OUT OF STOCK"
+            print(f"[{p_id}] {info['name']} - ${info['price']:.2f} ({stock_status})")
+        
+        print("\nOptions: Enter the Product ID to add to cart, or '0' to return.")
+        selection = input("Your choice: ").strip()
+        
+        if selection == "0" or not selection.isdigit():
+            return
+            
+        p_id = int(selection)
+        if p_id in PRODUCTS:
+            if PRODUCTS[p_id]['stock'] > 0:
+                # Add to cart dictionary
+                self.cart[p_id] = self.cart.get(p_id, 0) + 1
+                PRODUCTS[p_id]['stock'] -= 1  # Hold the stock temporarily
+                print(f"\nSuccess: Added 1x {PRODUCTS[p_id]['name']} to your cart.")
+            else:
+                print("\nError: Sorry, this item is out of stock.")
+        else:
+            print("\nError: Product ID not found.")
+
+    # --- CART & CHECKOUT MANAGEMENT ---
+    def view_cart(self):
+        if not self.cart:
+            print("\nYour cart is currently empty.")
+            return
+
+        print("\n--- YOUR SHOPPING CART ---")
+        grand_total = 0.0
+        for p_id, qty in self.cart.items():
+            item_total = PRODUCTS[p_id]['price'] * qty
+            grand_total += item_total
+            print(f"• {PRODUCTS[p_id]['name']} x{qty} - ${item_total:.2f}")
+            
+        print(f"Total Bill: ${grand_total:.2f}")
+        print("\n1. Proceed to Checkout\n2. Clear Cart & Return\n3. Go Back")
+        choice = input("Select an option: ").strip()
+
+        if choice == "1":
+            self.checkout(grand_total)
+        elif choice == "2":
+            # Return inventory back to store stock
+            for p_id, qty in self.cart.items():
+                PRODUCTS[p_id]['stock'] += qty
+            self.cart = {}
+            print("\nCart cleared.")
+        else:
+            return
+
+    def checkout(self, total):
+        print(f"\nProcessing payment of ${total:.2f}...")
+        # Simulated payment window
+        confirm = input("Confirm order? (yes/no): ").strip().lower()
+        if confirm == 'yes':
+            print("\n🎉 Order Confirmed! Thank you for your purchase.")
+            self.cart = {}  # Clear cart after successful order
+        else:
+            print("\nCheckout cancelled. Items are still in your cart.")
+
+# --- APPLICATION INITIALIZATION ---
+if __name__ == "__main__":
+    app = ECommerceApp()
+    app.run()
