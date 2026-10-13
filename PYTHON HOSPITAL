@@ -1,0 +1,55 @@
+import googlemaps
+
+# Replace with your actual Google Maps API key
+API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"
+
+def list_nearby_hospitals(lat, lng, radius=5000):
+    """
+    Finds and prints nearby hospitals using Google Places API.
+    
+    :param lat: Latitude as a float
+    :param lng: Longitude as a float
+    :param radius: Search radius in meters (default 5000m / 5km)
+    """
+    try:
+        # Initialize the Google Maps client
+        gmaps = googlemaps.Client(key=API_KEY)
+        
+        # Perform nearby search for hospitals
+        places_result = gmaps.places_nearby(
+            location=(lat, lng),
+            radius=radius,
+            type='hospital'
+        )
+        
+        hospitals = places_result.get('results', [])
+        
+        if not hospitals:
+            print("No hospitals found in the specified radius.")
+            return
+
+        print(f"Found {len(hospitals)} hospital(s) nearby:\n")
+        
+        for idx, place in enumerate(hospitals, start=1):
+            name = place.get('name', 'N/A')
+            address = place.get('vicinity', 'N/A')
+            rating = place.get('rating', 'No rating')
+            open_status = place.get('opening_hours', {}).get('open_now', 'Status unknown')
+            
+            print(f"{idx}. Name: {name}")
+            print(f"   Address: {address}")
+            print(f"   Rating: {rating}")
+            print(f"   Open Now: {open_status}")
+            print("-" * 40)
+            
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    # Example coordinates (e.g., central Bengaluru: 12.9716, 77.5946)
+    # Radius is set to 5000 meters (5 km)
+    latitude = 12.9716
+    longitude = 77.5946
+    search_radius_meters = 5000
+    
+    list_nearby_hospitals(latitude, longitude, search_radius_meters)
